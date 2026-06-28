@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toma Aí - Organizador de Medicamentos</title>
+    <!-- Fonte e Ícones -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* --- IDENTIDADE VISUAL E VARIÁVEIS --- */
+        :root {
+            --primary: #040fac;       /* Azul Claro Vibrante */
+            --primary-dark: #007EA7;  /* Azul Escuro para contraste */
+            --success: #0cc9c9;       /* Verde Moderno e Seguro */
+            --success-hover: #059669;
+            --bg-color: #fffffff3;      /* Fundo cinza bem claro/esverdeado */
+            --text-dark: #2D3748;
+            --text-light: #718096;
+            --white: #FFFFFF;
+            --danger: #b31220;
+            --radius: 24px;
+            --input-radius: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Nunito', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        /* Container que simula a tela do celular */
+        #app-container {
+            width: 100%;
+            max-width: 400px;
+            height: 100vh;
+            max-height: 850px;
+            background-color: var(--bg-color);
+            position: relative;
+            overflow-x: hidden;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        @media (min-width: 401px) {
+            #app-container { height: 90vh; border-radius: 40px; border: 8px solid #fff; }
+        }
+
+        /* Telas */
+        .screen {
+            display: none;
+            padding: 30px 24px;
+            animation: fadeSlideUp 0.4s ease-out forwards;
+        }
+        .screen.active { display: block; }
+
+        @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- COMPONENTES GERAIS --- */
+        h1, h2, h3 { color: var(--text-dark); margin-bottom: 8px; font-weight: 800; }
+        p { color: var(--text-light); font-size: 15px; margin-bottom: 24px; line-height: 1.5; }
+
+        .form-group { margin-bottom: 18px; position: relative; }
+        .form-group label { display: block; font-size: 14px; margin-bottom: 8px; color: var(--text-dark); font-weight: 700; }
+        
+        input, select {
+            width: 100%;
+            padding: 16px 16px 16px 45px; /* Espaço para o ícone */
+            border: 2px solid #E2E8F0;
+            border-radius: var(--input-radius);
+            font-size: 16px;
+            background: var(--white);
+            outline: none;
+            transition: all 0.3s;
+            color: var(--text-dark);
+        }
+        input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(0, 168, 232, 0.1); }
+        input::placeholder { color: #A0AEC0; font-weight: 600; }
+
+        .input-icon {
+            position: absolute;
+            left: 16px;
+            top: 42px;
+            color: #A0AEC0;
+            font-size: 18px;
+            transition: 0.3s;
+        }
+        input:focus + .input-icon { color: var(--primary); }
+
+        /* Botões */
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: var(--input-radius);
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        .btn-primary { background-color: var(--primary); color: var(--white); box-shadow: 0 4px 15px rgba(0, 168, 232, 0.3); }
+        .btn-primary:hover { background-color: var(--primary-dark); transform: translateY(-2px); }
+        
+        .btn-success { background-color: var(--success); color: var(--white); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); }
+        .btn-success:hover { background-color: var(--success-hover); transform: translateY(-2px); }
+        
+        .btn-outline { background-color: transparent; border: 2px solid #E2E8F0; color: var(--text-dark); }
+        .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+        
+        .btn-danger { background-color: #FEF2F2; color: var(--danger); border: none; }
+        .btn:active { transform: scale(0.98) !important; }
+
+        /* Cards */
+        .card {
+            background: var(--white);
+            padding: 20px;
+            border-radius: var(--radius);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #F1F5F9;
+        }
+        .card-info h3 { margin: 0; font-size: 18px; color: var(--text-dark); }
+        .card-info p { margin: 5px 0 0; font-size: 14px; font-weight: 600; color: var(--text-light); }
+        
+        .header-nav { display: flex; align-items: center; margin-bottom: 30px; }
+        .back-btn { 
+            font-size: 20px; color: var(--text-dark); cursor: pointer; margin-right: 15px;
+            background: var(--white); width: 40px; height: 40px; display: flex;
+            justify-content: center; align-items: center; border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        /* Notificações no topo */
+        #toast-container {
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+            width: 90%; z-index: 1000;
+        }
+        .toast {
+            padding: 15px; border-radius: 12px; font-size: 14px; font-weight: 700;
+            text-align: center; display: none; margin-bottom: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); animation: fadeSlideUp 0.3s;
+        }
+        .toast.error { background: #FEE2E2; color: var(--danger); display: block; border-left: 4px solid var(--danger); }
+        .toast.success { background: #D1FAE5; color: var(--success); display: block; border-left: 4px solid var(--success); }
+
+        .text-center { text-align: center; }
+        .link { color: var(--primary); font-weight: 700; text-decoration: none; cursor: pointer; }
+        .link:hover { text-decoration: underline; }
+
+        /* Helpers sem ícone para forms simples */
+        .no-icon-input { padding-left: 16px !important; }
+
+    </style>
+
+
+
+</head>
+<body>
+
+<div id="app-container">
+
+    <div id="toast-container"></div>
+
+    <!-- TELA 1: LOGIN -->
+    <div id="screen-login" class="screen active">
+        <div class="text-center" style="margin-top: 40px; margin-bottom: 30px;">
+            <div style="background: var(--white); width: 90px; height: 90px; border-radius: 30px; display: flex; justify-content: center; align-items: center; margin: 0 auto 20px; box-shadow: 0 10px 25px rgba(0, 168, 232, 0.2);">
+                <i class="fa-solid fa-capsules" style="font-size: 45px; color: var(--primary);"></i>
+            </div>
+            <h1 style="color: var(--primary); font-size: 32px;">Toma Aí</h1>
+            <p>Seu assistente inteligente<br>para não esquecer nenhum remédio.</p>
+        </div>
+
+        <div class="form-group">
+            <label>E-mail</label>
+            <input type="email" id="login-email" placeholder="Digite seu e-mail">
+            <i class="fa-solid fa-envelope input-icon"></i>
+        </div>
+        <div class="form-group" style="margin-bottom: 30px;">
+            <label>Senha</label>
+            <input type="password" id="login-pass" placeholder="Sua senha">
+            <i class="fa-solid fa-lock input-icon"></i>
+        </div>
+        
+        <button class="btn btn-primary" onclick="handleLogin()">Entrar na conta</button>
+        <button class="btn btn-outline" onclick="navigateTo('screen-register')">Criar conta</button>
+    </div>
+
+    <!-- NOVA TELA: CADASTRO -->
+
+
+    <div id="screen-register" class="screen">
+        <div class="header-nav" style="margin-bottom: 20px;">
+            <i class="fa-solid fa-arrow-left back-btn" onclick="navigateTo('screen-login')"></i>
+            <h2 style="margin:0;">Criar Conta</h2>
+        </div>
+        <p style="margin-bottom: 25px;">Preencha seus dados para começar a organizar seus tratamentos.</p>
+
+        <div class="form-group">
+            <label>Nome Completo</label>
+            <input type="text" id="reg-name" placeholder="Ex: Maria da Silva">
+            <i class="fa-solid fa-user input-icon"></i>
+        </div>
+        <div class="form-group">
+            <label>E-mail</label>
+            <input type="email" id="reg-email" placeholder="seuemail@exemplo.com">
+            <i class="fa-solid fa-envelope input-icon"></i>
+        </div>
+        <div class="form-group">
+            <label>Senha</label>
+            <input type="password" id="reg-pass" placeholder="Crie uma senha">
+            <i class="fa-solid fa-lock input-icon"></i>
+        </div>
+        <div class="form-group" style="margin-bottom: 30px;">
+            <label>Confirmar Senha</label>
+            <input type="password" id="reg-pass-confirm" placeholder="Repita a senha">
+            <i class="fa-solid fa-check-circle input-icon"></i>
+        </div>
+        
+        <button class="btn btn-success" onclick="handleRegister()">Cadastrar</button>
+        
+        <div class="text-center" style="margin-top: 20px;">
+            <span style="color: var(--text-light); font-size: 15px;">Já tem uma conta? <a class="link" onclick="navigateTo('screen-login')">Faça login</a></span>
+        </div>
+    </div>
+
+    <!-- TELA 2: HOME -->
+    <div id="screen-home" class="screen">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+            <div>
+                <p style="margin:0; font-weight: 700; color: var(--primary);">Bom dia,</p>
+                <h2 id="user-greeting" style="font-size: 24px;">Mariana!</h2>
+            </div>
+            <div style="background: var(--white); width: 45px; height: 45px; border-radius: 15px; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); cursor:pointer;" onclick="logout()">
+                <i class="fa-solid fa-arrow-right-from-bracket" style="color: var(--danger);"></i>
+            </div>
+        </div>
+
+        <div style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; padding: 25px; border-radius: 28px; margin-bottom: 30px; box-shadow: 0 10px 25px rgba(0, 168, 232, 0.4); position: relative; overflow: hidden;">
+            <!-- Círculo decorativo -->
+            <div style="position: absolute; top: -30px; right: -20px; width: 120px; height: 120px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
+            
+            <p style="color: rgba(255,255,255,0.8); margin-bottom: 5px; font-weight: 600;">Próxima dose</p>
+            <h2 style="color: white; font-size: 28px; margin-bottom: 10px;">💊 <span id="next-med-name">Losartana</span></h2>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="font-size: 32px; font-weight: 800;">⏰ <span id="next-med-time">08:00</span></div>
+                <span style="background: rgba(255,255,255,0.2); padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 700; backdrop-filter: blur(5px);">Aguardando</span>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 style="font-size: 18px;">Doses de hoje</h3>
+            <span class="link" style="font-size: 14px;" onclick="navigateTo('screen-list')">Ver todos</span>
+        </div>
+        
+        <div id="pending-list">
+            <!-- Preenchido via JS -->
+        </div>
+
+        <button class="btn btn-primary" style="margin-top: 25px;" onclick="navigateTo('screen-list')">
+            <i class="fa-solid fa-pills"></i> Gerenciar Tratamento
+        </button>
+    </div>
+
+    <!-- TELA 3: LISTA DE MEDICAMENTOS -->
+    <div id="screen-list" class="screen">
+        <div class="header-nav">
+            <i class="fa-solid fa-arrow-left back-btn" onclick="navigateTo('screen-home')"></i>
+            <h2 style="margin:0;">Meus Remédios</h2>
+        </div>
+
+        <div id="med-list-container">
+            <!-- Cards gerados via JS -->
+        </div>
+
+        <button class="btn btn-success" style="margin-top: 20px;" onclick="openCreateForm()">
+            <i class="fa-solid fa-plus"></i> Novo medicamento
+        </button>
+    </div>
+
+    <!-- TELA 4: CADASTRO DE MEDICAMENTO -->
+    <div id="screen-create" class="screen">
+        <div class="header-nav">
+            <i class="fa-solid fa-arrow-left back-btn" onclick="navigateTo('screen-list')"></i>
+            <h2 style="margin:0;">Novo Remédio</h2>
+        </div>
+
+        <div class="form-group">
+            <label>Nome do medicamento</label>
+            <input type="text" class="no-icon-input" id="create-name" placeholder="Ex: Metformina">
+        </div>
+        <div class="form-group">
+            <label>Dosagem</label>
+            <input type="text" class="no-icon-input" id="create-dose" placeholder="Ex: 500mg">
+        </div>
+        <div style="display: flex; gap: 15px;">
+            <div class="form-group" style="flex: 1;">
+                <label>Início</label>
+                <input type="date" class="no-icon-input" id="create-start">
+            </div>
+            <div class="form-group" style="flex: 1;">
+                <label>Fim</label>
+                <input type="date" class="no-icon-input" id="create-end">
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Horário da Dose</label>
+            <input type="time" class="no-icon-input" id="create-time">
+        </div>
+        <div class="date-row">
+    <div class="input-group">
+        <label>Início do Tratamento</label>
+        <input type="date" id="med-start-date" required>
+    </div>
+    <div class="input-group">
+        <label>Fim do Tratamento</label>
+        <input type="date" id="med-end-date" required>
+    </div>
+</div>
+
+<div class="input-group">
+    <label>Dias da Semana</label>
+    <div class="day-selector">
+        <label><input type="checkbox" value="Dom" class="day-check" checked>Dom</label>
+        <label><input type="checkbox" value="Seg" class="day-check" checked>Seg</label>
+        <label><input type="checkbox" value="Ter" class="day-check" checked>Ter</label>
+        <label><input type="checkbox" value="Qua" class="day-check" checked>Qua</label>
+        <label><input type="checkbox" value="Qui" class="day-check" checked>Qui</label>
+        <label><input type="checkbox" value="Sex" class="day-check" checked>Sex</label>
+        <label><input type="checkbox" value="Sáb" class="day-check" checked>Sáb</label>
+    </div>
+</div>
+
+        <button class="btn btn-success" style="margin-top: 20px;" onclick="crudCreate()">Salvar Medicamento</button>
+
+
+    </div>
+
+    <!-- TELA 5: EDITAR MEDICAMENTO -->
+    <div id="screen-edit" class="screen">
+        <div class="header-nav">
+            <i class="fa-solid fa-arrow-left back-btn" onclick="navigateTo('screen-list')"></i>
+            <h2 style="margin:0;">Editar Remédio</h2>
+        </div>
+
+        <input type="hidden" id="edit-id">
+        <div class="form-group">
+            <label>Nome do medicamento</label>
+            <input type="text" class="no-icon-input" id="edit-name">
+        </div>
+        <div class="form-group">
+            <label>Dosagem</label>
+            <input type="text" class="no-icon-input" id="edit-dose">
+        </div>
+        <div class="form-group" style="margin-bottom: 30px;">
+            <label>Horário</label>
+            <input type="time" class="no-icon-input" id="edit-time">
+        </div>
+
+        <button class="btn btn-primary" onclick="crudUpdate()">Atualizar dados</button>
+        <button class="btn btn-danger" onclick="crudDelete()">
+            <i class="fa-solid fa-trash"></i> Excluir medicamento
+        </button>
+    </div>
+
+    <!-- TELA 6: ALERTA (MOCKUP) -->
+    <div id="screen-alert" class="screen" style="background-color: var(--success); height: 100%;">
+        <div style="text-align: center; color: white; padding-top: 40px; display: flex; flex-direction: column; justify-content: center; height: 100%;">
+            <div style="background: rgba(255,255,255,0.2); width: 100px; height: 100px; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin: 0 auto 30px;">
+                <i class="fa-regular fa-bell fa-shake" style="font-size: 50px;"></i>
+            </div>
+            
+            <h2 style="color: white; font-size: 26px;">Hora do Remédio!</h2>
+            
+            <div style="background: white; border-radius: 28px; padding: 35px 20px; margin: 30px 0; color: var(--text-dark); box-shadow: 0 15px 30px rgba(0,0,0,0.1);">
+                <h1 style="color: var(--success); margin-bottom: 5px; font-size: 28px;">Losartana</h1>
+                <p style="font-size: 18px; font-weight: 700; color: var(--text-light); margin:0;">50mg</p>
+                <div style="font-size: 36px; font-weight: 800; margin-top: 20px; color: var(--text-dark);">⏰ 08:00</div>
+            </div>
+
+            <button class="btn" style="background: white; color: var(--success);" onclick="navigateTo('screen-home')">
+                <i class="fa-solid fa-check"></i> Já Tomei
+            </button>
+            <button class="btn" style="background: transparent; color: white; border: 2px solid rgba(255,255,255,0.5);" onclick="navigateTo('screen-home')">
+                <i class="fa-regular fa-clock"></i> Lembrar em 10 min
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    /* =========================================
+       CONFIGURAÇÃO DO WEBHOOK PARA O MAKE
+       ========================================= */
+    const WEBHOOK_URL = "https://hook.us2.make.com/9ce3196okpyl6mi44w94l48q66ya5gky"; 
+
+    /* =========================================
+       BANCO DE DADOS LOCAL (Simulação)
+       ========================================= */
+    let usersDb = []; 
+    let currentUserObj = null; // Armazena { name, email, pass }
+    
+    let medicationsDb = [
+        { id: 1, name: "Losartana", dose: "50mg", time: "08:00", frequency: "Todos os dias" },
+        { id: 2, name: "Vitamina D", dose: "2000 UI", time: "12:00", frequency: "Todos os dias" }
+    ];
+
+    /* =========================================
+       SISTEMA DE NOTIFICAÇÕES (TOAST)
+       ========================================= */
+    function showToast(msg, type = 'error') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.innerHTML = type === 'error' ? `<i class="fa-solid fa-circle-exclamation"></i> ${msg}` : `<i class="fa-solid fa-check-circle"></i> ${msg}`;
+        
+        container.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.animation = 'fadeSlideUp 0.3s reverse forwards';
+            setTimeout(() => toast.remove(), 300);
+        }, 3500);
+    }
+
+    /* =========================================
+       NAVEGAÇÃO
+       ========================================= */
+    function navigateTo(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+        
+        if(screenId === 'screen-home') loadHome();
+        if(screenId === 'screen-list') crudRead();
+    }
+
+    /* =========================================
+       LÓGICA DE CADASTRO E LOGIN
+       ========================================= */
+    function handleRegister() {
+        const name = document.getElementById('reg-name').value.trim();
+        const email = document.getElementById('reg-email').value.trim();
+        const pass = document.getElementById('reg-pass').value;
+        const passConfirm = document.getElementById('reg-pass-confirm').value;
+
+        // Validações
+        if(!name || !email || !pass || !passConfirm) {
+            return showToast("Preencha todos os campos.");
+        }
+        if(pass !== passConfirm) {
+            return showToast("As senhas não coincidem.");
+        }
+
+        // Regra: E-mail já utilizado
+        const emailExists = usersDb.find(u => u.email === email);
+        if (emailExists) {
+            return showToast("Esse e-mail já está sendo utilizado.");
+        }
+
+        // Salvar usuário
+        usersDb.push({ name, email, pass });
+        
+        showToast("Conta criada com sucesso! Faça login.", "success");
+        
+        // Limpar formulário de registro
+        document.getElementById('reg-name').value = '';
+        document.getElementById('reg-email').value = '';
+        document.getElementById('reg-pass').value = '';
+        document.getElementById('reg-pass-confirm').value = '';
+        
+        // Direcionar para login para logar normalmente
+        navigateTo('screen-login');
+    }
+
+    function handleLogin() {
+        const email = document.getElementById('login-email').value.trim();
+        const pass = document.getElementById('login-pass').value;
+
+        if(!email || !pass) return showToast("Preencha e-mail e senha.");
+        
+        const user = usersDb.find(u => u.email === email && u.pass === pass);
+        
+        if(user) {
+            currentUserObj = user;
+            navigateTo('screen-home');
+        } else {
+            showToast("E-mail ou senha incorretos.");
+        }
+    }
+
+    function logout() {
+        currentUserObj = null;
+        document.getElementById('login-email').value = '';
+        document.getElementById('login-pass').value = '';
+        navigateTo('screen-login');
+    }
+
+    /* =========================================
+       TELA HOME
+       ========================================= */
+    function loadHome() {
+        if(currentUserObj) {
+            // Pega o primeiro nome
+            const firstName = currentUserObj.name.split(' ')[0];
+            document.getElementById('user-greeting').textContent = `${firstName}!`;
+        }
+
+        const listContainer = document.getElementById('pending-list');
+        listContainer.innerHTML = '';
+
+        if(medicationsDb.length > 0) {
+            document.getElementById('next-med-name').textContent = medicationsDb[0].name;
+            document.getElementById('next-med-time').textContent = medicationsDb[0].time;
+
+            medicationsDb.forEach(med => {
+                listContainer.innerHTML += `
+                    <div class="card" style="padding: 18px; margin-bottom: 12px; cursor: pointer;" onclick="navigateTo('screen-alert')">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <div style="background: #E0F2FE; width: 40px; height: 40px; border-radius: 12px; display: flex; justify-content: center; align-items: center;">
+                                <i class="fa-solid fa-capsules" style="color: var(--primary);"></i>
+                            </div>
+                            <div>
+                                <h3 style="font-size: 16px; margin:0;">${med.name}</h3>
+                                <p style="margin:0; font-size: 13px;">${med.dose}</p>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <span style="font-weight: 800; color: var(--primary); font-size: 16px;">${med.time}</span>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+    }
+
+    /* =========================================
+       INTEGRAÇÃO CRUD + MAKE (WEBHOOK)
+       ========================================= */
+async function sendToMake(action, data = {}) {
+    try {
+    
+        const webhookReal = "https://hook.us2.make.com/9ce3196okpyl6mi44w94l48q66ya5gky";
+        
+        console.log(`Enviando dados para o Make. Ação: ${action}...`);
+
+        const response = await fetch(webhookReal, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: action, userEmail: currentUserObj?.email, ...data })
+        });
+        
+
+        const textoResposta = await response.text();
+        console.log("Sucesso! O Make respondeu:", textoResposta);
+        
+        return { success: true };
+        
+    } catch (error) {
+        console.error("Erro ao tentar conectar com o Make:", error);
+        return { success: false };
+    }
+}
+
+    // 1. CREATE
+    async function crudCreate() {
+        const name = document.getElementById('create-name').value;
+        const dose = document.getElementById('create-dose').value;
+        const time = document.getElementById('create-time').value;
+
+        if(!name || !time) { return showToast("Nome e horário são obrigatórios."); }
+
+        const newMed = {
+            id: Date.now(),
+            name: name,
+            dose: dose,
+            time: time,
+            frequency: "Todos os dias"
+        };
+
+        medicationsDb.push(newMed);
+        await sendToMake("create", { medicamento: newMed });
+        
+        showToast("Medicamento salvo!", "success");
+        navigateTo('screen-list');
+    }
+
+    // 2. READ
+    async function crudRead() {
+        const container = document.getElementById('med-list-container');
+        container.innerHTML = '';
+
+        medicationsDb.forEach(med => {
+            container.innerHTML += `
+                <div class="card">
+                    <div>
+                        <h3 style="font-size: 18px;">${med.name}</h3>
+                        <p style="margin-bottom: 6px;">${med.dose} • ${med.frequency}</p>
+                        <span style="background: #E0F2FE; color: var(--primary-dark); padding: 4px 10px; border-radius: 8px; font-weight: 700; font-size: 13px;">⏰ ${med.time}</span>
+                    </div>
+                    <button class="btn btn-outline" style="width: 45px; height: 45px; padding: 0; margin: 0; border-radius: 12px; display: flex; justify-content: center; align-items: center;" onclick="openEditForm(${med.id})">
+                        <i class="fa-solid fa-pen"></i>
+                    </button>
+                </div>
+            `;
+        });
+    }
+
+    // 3. UPDATE
+    function openEditForm(id) {
+        const med = medicationsDb.find(m => m.id === id);
+        if(!med) return;
+
+        document.getElementById('edit-id').value = med.id;
+        document.getElementById('edit-name').value = med.name;
+        document.getElementById('edit-dose').value = med.dose;
+        document.getElementById('edit-time').value = med.time;
+
+        navigateTo('screen-edit');
+    }
+
+    async function crudUpdate() {
+        const id = parseInt(document.getElementById('edit-id').value);
+        const medIndex = medicationsDb.findIndex(m => m.id === id);
+        
+        if(medIndex > -1) {
+            medicationsDb[medIndex].name = document.getElementById('edit-name').value;
+            medicationsDb[medIndex].dose = document.getElementById('edit-dose').value;
+            medicationsDb[medIndex].time = document.getElementById('edit-time').value;
+
+            await sendToMake("update", { medicamento: medicationsDb[medIndex] });
+            showToast("Atualizado com sucesso!", "success");
+        }
+        navigateTo('screen-list');
+    }
+
+    // 4. DELETE
+    async function crudDelete() {
+        const id = parseInt(document.getElementById('edit-id').value);
+        
+        if(confirm("Tem certeza que deseja excluir este remédio?")) {
+            medicationsDb = medicationsDb.filter(m => m.id !== id);
+            await sendToMake("delete", { id: id });
+            
+            showToast("Medicamento excluído.", "success");
+            navigateTo('screen-list');
+        }
+    }
+
+    // Helpers
+    function openCreateForm() {
+        document.getElementById('create-name').value = '';
+        document.getElementById('create-dose').value = '';
+        document.getElementById('create-time').value = '';
+        navigateTo('screen-create');
+    }
+
+</script>
+
+</body>
+</html>
