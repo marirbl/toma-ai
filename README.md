@@ -6,3 +6,7 @@ O aplicativo Toma Aí! foi criado para solucionar a dificuldade que muitas pesso
 ### Banco de Dados - Toma Aí (Planilha -> Google Sheets)
 
 https://docs.google.com/spreadsheets/d/1eF1yyDlscztxON4rS2zhOy7N47d6CCLWosyMoeOlwwo/edit?usp=sharing
+
+### Make (Link CRUD)
+
+https://us2.make.com/public/shared-scenario/mJt6e9komnE/integration-webhooks
