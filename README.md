@@ -3,6 +3,10 @@
 
 O aplicativo Toma Aí! foi criado para solucionar a dificuldade que muitas pessoas enfrentam ao organizar e lembrar corretamente seus medicamentos, principalmente quando possuem diferentes remédios, horários e períodos de uso. Destinado a pacientes em tratamentos contínuos, idosos, familiares e qualquer pessoa que precise controlar sua rotina de medicamentos, o aplicativo permite cadastrar informações como nome, dose, horário e datas de uso de forma simples e organizada. Dessa forma, ajuda a reduzir esquecimentos, facilita o acompanhamento do tratamento e transforma uma tarefa que pode ser confusa em uma rotina mais prática, segura e acessível. O nome Toma Aí! representa a proposta de oferecer uma ferramenta próxima e fácil de usar, funcionando como um lembrete e organizador pessoal de medicamentos.
 
+### Figma (Protótipo)
+
+https://www.figma.com/make/Gm6clsI3X1BHcBd4U8ZRCC/Toma-A%C3%AD-Medication-Organizer?fullscreen=1&t=OFqRgilWaHSwpwjr-1&code-node-id=0-9
+
 ### Banco de Dados - Toma Aí (Planilha -> Google Sheets)
 
 https://docs.google.com/spreadsheets/d/1eF1yyDlscztxON4rS2zhOy7N47d6CCLWosyMoeOlwwo/edit?usp=sharing
